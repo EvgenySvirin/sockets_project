@@ -23,7 +23,6 @@ def start_slicer():
                                  client_speed_limit=client_speed_limit,
                                  echo_server_ip=echo_server_ip,
                                  echo_server_port=echo_server_port)
-    print("he1re")
     program_state.run()
 
 

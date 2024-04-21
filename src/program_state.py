@@ -11,6 +11,13 @@ from threading import Thread, Lock
 
 
 def create_ip_port(ip: str, port: int, label: int):
+    """
+    Creates address in lo.
+    :param ip:
+    :param port:
+    :param label:
+    :return:
+    """
     subprocess.run(
         ["sudo", "ip", "addr", "add", f"{str(ip)}/{port}", "brd", "+", "dev", "lo", "label",
          f"lo:{label}"])
@@ -54,22 +61,20 @@ class ProgramState:
 
     def run(self) -> None:
         """
-
+        Runs echo server and ips updating function in two separate threads
+        and clients work function based on select.
         :return:
         """
         self.time_start = time()
-        print("he2re")
         server_thread = Thread(target=self.__run_echo_server)
         server_thread.start()
 
-        print("he3re")
         ips_file_thread = Thread(target=self.__update_ips)
         ips_file_thread.start()
 
-        print("he4re")
-        self.run_clients(self.sockets_clients)
+        self.__run_clients(self.sockets_clients)
 
-    def run_clients(self, sockets_clients: typing.Dict[socket.socket, Client]):
+    def __run_clients(self, sockets_clients: typing.Dict[socket.socket, Client]) -> None:
         print("he5re")
         print(sockets_clients.keys())
         while True:
@@ -93,12 +98,12 @@ class ProgramState:
                 client = sockets_clients[x]
                 sockets_clients.pop(x)
 
-                self.ips_clients.pop(client.ip)
+                self.ips_clients.pop(client.client_ip)
 
-    def __run_echo_server(self):
+    def __run_echo_server(self) -> None:
         self.echo_server.run()
 
-    def __update_ips(self):
+    def __update_ips(self) -> None:
         while True:
             try:
                 with open(self.ips_filename) as file:
@@ -115,16 +120,11 @@ class ProgramState:
                 print(f"No such file or directory {self.ips_filename}")
             sleep(self.ips_revision_sleep_time)
 
-    def __create_client(self, ip: str):
-        """
-        Creates: ip in lo, instance of a client, and records about it and program state dictionaries.
-        :param ip:
-        :return:
-        """
+    def __create_client(self, ip: str) -> None:
         print("YA RODILSYA")
         create_ip_port(ip, self.client_port, self.label)
         self.label += 1
-        client = Client(ip=ip, port=self.client_port,
+        client = Client(client_ip=ip, client_port=self.client_port,
                         server_ip=self.echo_server_ip,
                         server_port=self.echo_server_port,
                         block_size=self.block_size)

@@ -23,11 +23,9 @@ class EchoServer:
         :return: None
         """
         while True:
-            print("HERE1", self.server_ip, self.server_port)
             data = self.sock.recv(self.block_size)
 
             client_ip = socket.inet_ntoa(data[self.block_size - 8: self.block_size - 4])
             client_port = int.from_bytes(data[self.block_size - 4: self.block_size], "big")
 
             self.sock.sendto(data, (client_ip, client_port))
-            print(f"CLIENT IP AND PORT ON SERVER: {client_ip}, {client_port}")

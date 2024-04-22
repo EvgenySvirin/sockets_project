@@ -34,13 +34,11 @@ class Client:
         self.bytes_received = 0
         self.creation_time = time()
 
-
     def read(self) -> None:
         """
         Reads data came from server and checks that equals to sent data.
         :return:
         """
-        print("SAMUYU VAZHNUYU")
         data = self.socket.recv(self.block_size)
         assert self.block == data
         self.bytes_received += len(data)
@@ -57,5 +55,4 @@ class Client:
         and the rest filled to fit block size.
         :return:
         """
-        print((self.server_ip, self.server_port))
         self.socket.sendto(self.block, (self.server_ip, self.server_port))

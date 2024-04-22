@@ -9,6 +9,8 @@ from client.client import Client
 from time import time, sleep
 from threading import Thread, Lock
 
+from ips_generator.ips_generator import IPSGenerator
+
 
 def create_ip_port(ip: str, port: int, label: int):
     """
@@ -23,23 +25,30 @@ def create_ip_port(ip: str, port: int, label: int):
          f"lo:{label}"])
 
 
+def change_ulimit(number: int) -> None:
+    """
+    :param number: number for ulimit to set
+    :return:
+    """
+    subprocess.run(["sudo", "ulimit", "-n", str(number)])
+
+
 class ProgramState:
     def __init__(self,
                  ips_filename: str,
-                 client_speed_limit: int,
+                 client_speed_limit_Kbs: int,
                  echo_server_ip: str,
                  echo_server_port: int,
                  block_size: int = 125 * 4):
         """
         :param ips_filename: filename where ips situated
-        :param client_speed_limit: speed for any client
+        :param client_speed_limit_Kbs: speed for any client
         :param echo_server_ip: ip of echo server
         :param echo_server_port: port of echo server
         :param block_size: size of data blocks to send and receive
         """
-
         self.ips_filename = ips_filename
-        self.client_speed_limit = client_speed_limit
+        self.client_speed_limit_Kbs = client_speed_limit_Kbs
         self.block_size = block_size
 
         self.client_port = echo_server_port
@@ -55,9 +64,11 @@ class ProgramState:
         self.sockets_clients = dict()
         self.sockets = []
 
-        self.ips_generator_enabled = False
-        self.file_mutex = Lock()
+        self.ips_generator_is_enabled = False
+        self.generator_clients_amount_limit = 1000
         self.time_start = None
+
+        change_ulimit(75000)
 
     def run(self) -> None:
         """
@@ -65,6 +76,11 @@ class ProgramState:
         and clients work function based on select.
         :return:
         """
+        if self.ips_generator_is_enabled:
+            generator = IPSGenerator(filename="generated_ips.txt", clients_amount_limit=self.generator_clients_amount_limit)
+            generator.generate()
+            self.ips_filename = generator.filename
+
         self.time_start = time()
         server_thread = Thread(target=self.__run_echo_server)
         server_thread.start()
@@ -75,21 +91,16 @@ class ProgramState:
         self.__run_clients(self.sockets_clients)
 
     def __run_clients(self, sockets_clients: typing.Dict[socket.socket, Client]) -> None:
-        print("he5re")
-        print(sockets_clients.keys())
         while True:
             r_sockets, w_sockets, x_sockets = select.select(sockets_clients.keys(),
                                                             sockets_clients.keys(),
                                                             sockets_clients.keys(),
                                                             1)
-            print("he6re")
-            print(r_sockets)
-
             for r in r_sockets:
                 sockets_clients[r].read()
             for w in w_sockets:
                 client = sockets_clients[w]
-                if client.speed_bits_seconds() <= self.client_speed_limit:
+                if client.speed_bits_seconds() <= self.client_speed_limit_Kbs * 1024:
                     client.write()
 
             for x in x_sockets:
@@ -121,7 +132,6 @@ class ProgramState:
             sleep(self.ips_revision_sleep_time)
 
     def __create_client(self, ip: str) -> None:
-        print("YA RODILSYA")
         create_ip_port(ip, self.client_port, self.label)
         self.label += 1
         client = Client(client_ip=ip, client_port=self.client_port,

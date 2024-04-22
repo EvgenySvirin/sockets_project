@@ -1,7 +1,5 @@
 import socket
-import sys
 from time import time
-from selectors import EpollSelector, EVENT_READ
 
 
 class Client:

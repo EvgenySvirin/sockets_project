@@ -1,4 +1,3 @@
-import os
 import sys
 from ipaddress import ip_address
 

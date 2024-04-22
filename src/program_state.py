@@ -64,7 +64,7 @@ class ProgramState:
         self.ips_clients = dict()
         self.sockets_clients = dict()
 
-        self.ips_generator_is_enabled = True
+        self.ips_generator_is_enabled = False
         self.generator_clients_amount_limit = 1000
         self.time_start = None
 

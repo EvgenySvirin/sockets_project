@@ -31,7 +31,7 @@ def change_ulimit(number: int) -> None:
     :param number: number for ulimit to set
     :return:
     """
-    subprocess.run(["sudo", "ulimit", "-n", str(number)])
+    subprocess.run(["sudo", "prlimit", f"--nofile={number}:"])
 
 
 class ProgramState:

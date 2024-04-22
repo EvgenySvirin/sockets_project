@@ -20,7 +20,7 @@ def start_slicer():
     echo_server_port = int(sys.argv[4])
 
     program_state = ProgramState(ips_filename=ips_filename,
-                                 client_speed_limit_Kbs=client_speed_limit,
+                                 client_speed_limit_kbs=client_speed_limit,
                                  echo_server_ip=echo_server_ip,
                                  echo_server_port=echo_server_port)
     program_state.run()

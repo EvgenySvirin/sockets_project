@@ -7,7 +7,7 @@ from ipaddress import ip_address
 from echo_server.echo_server import EchoServer
 from client.client import Client
 from time import time, sleep
-from threading import Thread, Lock
+from threading import Thread
 
 from ips_generator.ips_generator import IPSGenerator
 
@@ -37,19 +37,19 @@ def change_ulimit(number: int) -> None:
 class ProgramState:
     def __init__(self,
                  ips_filename: str,
-                 client_speed_limit_Kbs: int,
+                 client_speed_limit_kbs: int,
                  echo_server_ip: str,
                  echo_server_port: int,
                  block_size: int = 125 * 4):
         """
         :param ips_filename: filename where ips situated
-        :param client_speed_limit_Kbs: speed for any client
+        :param client_speed_limit_kbs: speed for any client
         :param echo_server_ip: ip of echo server
         :param echo_server_port: port of echo server
         :param block_size: size of data blocks to send and receive
         """
         self.ips_filename = ips_filename
-        self.client_speed_limit_Kbs = client_speed_limit_Kbs
+        self.client_speed_limit_kbs = client_speed_limit_kbs
         self.block_size = block_size
 
         self.client_port = echo_server_port
@@ -64,10 +64,10 @@ class ProgramState:
         self.ips_clients = dict()
         self.sockets_clients = dict()
 
-        self.ips_generator_is_enabled = False
-        self.generator_clients_amount_limit = 1000
         self.time_start = None
 
+        self.ips_generator_is_enabled = False
+        self.generator_clients_amount_limit = 1000
         change_ulimit(75000)
 
     def run(self) -> None:
@@ -101,7 +101,7 @@ class ProgramState:
                 sockets_clients[r].read()
             for w in w_sockets:
                 client = sockets_clients[w]
-                if client.speed_bits_seconds() <= self.client_speed_limit_Kbs * 1024:
+                if client.speed_bits_seconds() <= self.client_speed_limit_kbs * 1024:
                     client.write()
 
             for x in x_sockets:

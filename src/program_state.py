@@ -12,7 +12,7 @@ from threading import Thread, Lock
 from ips_generator.ips_generator import IPSGenerator
 
 
-def create_ip_port(ip: str, port: int, label: int):
+def create_address(ip: str, label: int):
     """
     Creates address in lo.
     :param ip:
@@ -20,8 +20,9 @@ def create_ip_port(ip: str, port: int, label: int):
     :param label:
     :return:
     """
+    mask = 8
     subprocess.run(
-        ["sudo", "ip", "addr", "add", f"{str(ip)}/{port}", "brd", "+", "dev", "lo", "label",
+        ["sudo", "ip", "addr", "add", f"{str(ip)}/{mask}", "brd", "+", "dev", "lo", "label",
          f"lo:{label}"])
 
 
@@ -54,17 +55,16 @@ class ProgramState:
         self.client_port = echo_server_port
         self.echo_server_ip = echo_server_ip
         self.echo_server_port = echo_server_port
-        self.label = 100
-        create_ip_port(ip=echo_server_ip, port=echo_server_port, label=self.label)
+        self.label = 0
+        create_address(ip=echo_server_ip, label=self.label)
         self.label += 1
         self.echo_server = EchoServer(server_ip=echo_server_ip, server_port=echo_server_port, block_size=block_size)
 
         self.ips_revision_sleep_time = 3
         self.ips_clients = dict()
         self.sockets_clients = dict()
-        self.sockets = []
 
-        self.ips_generator_is_enabled = False
+        self.ips_generator_is_enabled = True
         self.generator_clients_amount_limit = 1000
         self.time_start = None
 
@@ -77,7 +77,8 @@ class ProgramState:
         :return:
         """
         if self.ips_generator_is_enabled:
-            generator = IPSGenerator(filename="generated_ips.txt", clients_amount_limit=self.generator_clients_amount_limit)
+            generator = IPSGenerator(filename="generated_ips.txt",
+                                     clients_amount_limit=self.generator_clients_amount_limit)
             generator.generate()
             self.ips_filename = generator.filename
 
@@ -132,7 +133,7 @@ class ProgramState:
             sleep(self.ips_revision_sleep_time)
 
     def __create_client(self, ip: str) -> None:
-        create_ip_port(ip, self.client_port, self.label)
+        create_address(ip=ip, label=self.label)
         self.label += 1
         client = Client(client_ip=ip, client_port=self.client_port,
                         server_ip=self.echo_server_ip,

@@ -25,6 +25,9 @@ class EchoServer:
         while True:
             data = self.sock.recv(self.block_size)
 
+            """
+            Extracting logical address
+            """
             client_ip = socket.inet_ntoa(data[self.block_size - 8: self.block_size - 4])
             client_port = int.from_bytes(data[self.block_size - 4: self.block_size], "big")
 

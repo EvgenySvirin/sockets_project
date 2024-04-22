@@ -29,7 +29,8 @@ class Client:
         self.socket.bind((client_ip, client_port))
 
         self.block_size = block_size
-        self.block = (socket.inet_aton(client_ip) + client_port.to_bytes(4, 'big')).zfill(block_size)
+        logical_address = (socket.inet_aton(client_ip) + client_port.to_bytes(4, 'big'))
+        self.block = logical_address.zfill(block_size)
 
         self.bytes_received = 0
         self.creation_time = time()
